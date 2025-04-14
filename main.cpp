@@ -10,6 +10,8 @@ float camAngleX = 0.0f;  // Ângulo de rotação no eixo X
 // Variável para o ângulo da porta
 float doorAngle = 0.0f; // Porta inicialmente fechada
 
+bool isInside = false; // Indica se o usuário está dentro da sala
+
 // Função para configurar a iluminação
 void setupLighting() {
     // Parâmetros da luz ambiente
@@ -424,24 +426,66 @@ void reshape(int w, int h) {
     glMatrixMode(GL_MODELVIEW);
 }
 
+// Função para verificar colisões com paredes e objetos
+bool checkCollision(float newX, float newZ) {
+    // Limites da sala
+    const float roomMinX = -5.0f;
+    const float roomMaxX = 5.0f;
+    const float roomMinZ = -5.0f;
+    const float roomMaxZ = 5.0f;
+    
+    // Verifica se está tentando atravessar paredes
+    if (newX < roomMinX || newX > roomMaxX || newZ < roomMinZ || newZ > roomMaxZ) {
+        // Só permite atravessar a parede frontal (z = -5) pela porta
+        if (newZ < roomMinZ) {
+            // Verifica se está na área da porta (-1 < x < 1) e a porta está aberta
+            if (doorAngle > 0.01f && newX > -1.0f && newX < 1.0f) {
+                isInside = !isInside; // Alterna entre dentro e fora
+                return false; // Permite a passagem
+            }
+            return true; // Colisão com parede frontal fora da porta
+        }
+        return true; // Colisão com outras paredes
+    }
+    
+    // Verifica colisão com objetos (implementação básica)
+    if (isInside) {
+        // Geladeira
+        if (newX > 1.0f && newX < 2.0f && newZ > 3.5f && newZ < 4.5f) return true;
+        // Fogão
+        if (newX > 3.0f && newX < 4.0f && newZ > 3.5f && newZ < 4.5f) return true;
+        // Mesa de cozinha
+        if (newX > 1.0f && newX < 3.0f && newZ > 1.5f && newZ < 2.5f) return true;
+        // Sofá
+        if (newX > -4.0f && newX < -2.0f && newZ > -1.5f && newZ < -0.5f) return true;
+        // Mesa de centro
+        if (newX > -3.75f && newX < -2.25f && newZ > -3.9f && newZ < -3.1f) return true;
+    }
+    
+    return false; // Sem colisão
+}
+
 void keyboard(unsigned char key, int x, int y) {
     float moveSpeed = 0.2f;
+    float newX = camX;
+    float newZ = camZ;
+    
     switch (key) {
         case 'w':
-            camX += sinf(camAngleY) * moveSpeed;
-            camZ += -cosf(camAngleY) * moveSpeed;
+            newX += sinf(camAngleY) * moveSpeed;
+            newZ += -cosf(camAngleY) * moveSpeed;
             break;
         case 's':
-            camX -= sinf(camAngleY) * moveSpeed;
-            camZ -= -cosf(camAngleY) * moveSpeed;
+            newX -= sinf(camAngleY) * moveSpeed;
+            newZ -= -cosf(camAngleY) * moveSpeed;
             break;
         case 'a':
-            camX -= cosf(camAngleY) * moveSpeed;
-            camZ -= sinf(camAngleY) * moveSpeed;
+            newX -= cosf(camAngleY) * moveSpeed;
+            newZ -= sinf(camAngleY) * moveSpeed;
             break;
         case 'd':
-            camX += cosf(camAngleY) * moveSpeed;
-            camZ += sinf(camAngleY) * moveSpeed;
+            newX += cosf(camAngleY) * moveSpeed;
+            newZ += sinf(camAngleY) * moveSpeed;
             break;
         case 'o':  // Abrir/fechar a porta
             if (doorAngle < 0.01f) {
@@ -454,6 +498,13 @@ void keyboard(unsigned char key, int x, int y) {
             exit(0);
             break;
     }
+    
+    // Verifica colisão antes de atualizar a posição
+    if (!checkCollision(newX, newZ)) {
+        camX = newX;
+        camZ = newZ;
+    }
+    
     glutPostRedisplay();
 }
 
