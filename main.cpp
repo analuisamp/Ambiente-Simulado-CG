@@ -5,6 +5,7 @@
 // Variáveis globais para a posição e orientação da câmera
 float camX = 0.0f, camY = 1.6f, camZ = 5.0f; // Posição inicial da câmera
 float camAngleY = 0.0f;  // Ângulo de rotação no eixo Y
+float camAngleX = 0.0f;  // Ângulo de rotação no eixo X
 
 // Variável para o ângulo da porta
 float doorAngle = 0.0f; // Porta inicialmente fechada
@@ -396,8 +397,10 @@ void display() {
     
     // Agora aplique a transformação da câmera (gluLookAt)
     gluLookAt(camX, camY, camZ, 
-              camX + sinf(camAngleY), camY, camZ - cosf(camAngleY), 
-              0.0, 1.0, 0.0);
+        camX + sinf(camAngleY) * cosf(camAngleX), 
+        camY + sinf(camAngleX), 
+        camZ - cosf(camAngleY) * cosf(camAngleX), 
+        0.0, 1.0, 0.0);
               
     // Desenha a cena
     drawRoom();
@@ -462,6 +465,12 @@ void specialKeys(int key, int x, int y) {
             break;
         case GLUT_KEY_RIGHT:
             camAngleY += angleSpeed;
+            break;
+        case GLUT_KEY_UP:       // Olhar para cima
+            camAngleX += angleSpeed;
+            break;
+        case GLUT_KEY_DOWN:      // Olhar para baixo
+            camAngleX -= angleSpeed;
             break;
     }
     glutPostRedisplay();
