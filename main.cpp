@@ -393,7 +393,7 @@ void display() {
     glPushMatrix();           // Salva a matriz atual
         glLoadIdentity();     // Garante que estamos na identidade
         // Defina uma luz direcional (w = 0) fixa – aqui a luz vem de cima e da frente
-        GLfloat lightPosition[] = { 0.0f, 5.0f, 5.0f, 0.0f };
+        GLfloat lightPosition[] = { 0.0f, 2.8f, 0.0f, 1.0f }; // Centro (X,Z), perto do teto (Y), luz posicional (w=1)
         glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
     glPopMatrix();            // Restaura a matriz
     
