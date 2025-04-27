@@ -2,6 +2,14 @@
 #include <cmath>
 #include <cstdlib>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+GLuint doorTex;            // ID da textura carregada no GPU  
+float doorWidth  = 2.0f;   // largura do quad da porta (unidades OpenGL)  
+float doorHeight = 2.5f;   // altura do quad da porta  
+
+
 // Variáveis globais para a posição e orientação da câmera
 float camX = 0.0f, camY = 1.6f, camZ = 5.0f; // Posição inicial da câmera
 float camAngleY = 0.0f;  // Ângulo de rotação no eixo Y
@@ -204,19 +212,30 @@ void drawTVDevice() {
 }
 
 void drawDoor() {
-     // Porta - A colisão é tratada verificando se a porta está fechada na área da parede
     glPushMatrix();
-        glTranslatef(-1.0f, 0.0f, -5.0f + 0.01f); // Pivô da porta
-        glRotatef(-doorAngle * (180.0f / 3.14159f), 0.0f, 1.0f, 0.0f);
-        glColor3f(0.4f, 0.2f, 0.0f);
-        glBegin(GL_QUADS);
-           glVertex3f(0.0f, 0.0f, 0.0f);
-           glVertex3f(2.0f, 0.0f, 0.0f);
-           glVertex3f(2.0f, 2.5f, 0.0f);
-           glVertex3f(0.0f, 2.5f, 0.0f);
-        glEnd();
+      // posiciona e gira
+      glTranslatef(-1,0,-5.0f+0.01f);
+      glRotatef(-doorAngle*180.0f/3.14159f,0,1,0);
+  
+      // vincula só o ID já criado
+      glBindTexture(GL_TEXTURE_2D, doorTex);
+      glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+      glColor3f(1,1,1);
+  
+      // UV recortadas para eliminar bordas pretas
+      const float u0 = 0.25f, u1 = 0.75f, v0 = 0.0f, v1 = 1.0f;
+  
+      // quad 2×2.5
+      glBegin(GL_QUADS);
+        glTexCoord2f(u0,v0); glVertex3f(0,      0,       0);
+        glTexCoord2f(u1,v0); glVertex3f(doorWidth, 0,       0);
+        glTexCoord2f(u1,v1); glVertex3f(doorWidth, doorHeight,0);
+        glTexCoord2f(u0,v1); glVertex3f(0,      doorHeight,0);
+      glEnd();
+  
+      glBindTexture(GL_TEXTURE_2D, 0);
     glPopMatrix();
-}
+  }
 
 // --- Função de Desenho da Sala e Display (sem alterações significativas) ---
 void drawRoom() {
@@ -254,6 +273,34 @@ void drawRoom() {
     // Teto (y = 3)
     glColor3f(0.7f, 0.7f, 0.9f);
     glBegin(GL_QUADS); glVertex3f(-5.0f, 3.0f, -5.0f); glVertex3f(5.0f, 3.0f, -5.0f); glVertex3f(5.0f, 3.0f, 5.0f); glVertex3f(-5.0f, 3.0f, 5.0f); glEnd();
+}
+
+void loadTexture(const char *filename) {
+    int width, height, channels;
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 0);
+    if (!data) {
+        fprintf(stderr, "Erro abrindo %s\n", filename);
+        return;
+    }
+
+    // Gera e vincula o ID de textura
+    glGenTextures(1, &doorTex);
+    glBindTexture(GL_TEXTURE_2D, doorTex);
+
+    // Parâmetros de como tratar as bordas e a filtragem
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // Envia os dados para a GPU e gera mipmaps (níveis de detalhe)
+    if (channels == 3)
+        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB,  width, height, GL_RGB,  GL_UNSIGNED_BYTE, data);
+    else
+        gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+    stbi_image_free(data);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void display() {
@@ -440,8 +487,6 @@ void specialKeys(int key, int x, int y) {
     glutPostRedisplay();
 }
 
-
-// Função main (sem alterações)
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
@@ -453,6 +498,9 @@ int main(int argc, char** argv) {
     // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     setupLighting(); // Configura iluminação
+
+    glEnable(GL_TEXTURE_2D);  
+    loadTexture("images/porta-minecraft-invertida.png");        
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
