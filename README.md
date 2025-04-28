@@ -15,10 +15,10 @@ Este projeto em C++ usa OpenGL (GLUT) e stb_image para criar uma cena 3D interat
 ---
 
 ## Pré-requisitos
-- **GLUT** (freeglut ou similar)  
-- **OpenGL** (GL e GLU)  
-- **stb_image** (incluir `stb_image.h` no projeto)  
-- Compilador C++ compatível (g++, clang++, Visual C++)  
+- **GLUT** 
+- **OpenGL**
+- **stb_image**  
+- Compilador C++ compatível
 
 ---
 
