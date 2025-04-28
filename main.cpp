@@ -606,7 +606,8 @@ bool checkCollision(float newX, float newZ) {
     if (checkAABBCollision(newX,newZ,collisionRadius, 1.0f,2.0f,3.5f,4.5f)) return true; // geladeira
     if (checkAABBCollision(newX,newZ,collisionRadius, 2.5f,4.5f,3.5f,4.5f)) return true; // fogão
     if (checkAABBCollision(newX,newZ,collisionRadius, 1.0f,3.0f,1.4f,2.6f)) return true; // mesa cozinha
-    // ... (demais objetos)
+    if (checkAABBCollision(newX, newZ, collisionRadius, -4.0f, -2.0f, -1.5f, -0.5f)) return true; // sofa
+    if (checkAABBCollision(newX, newZ, collisionRadius, -3.75f, -2.25f, -3.9f, -3.1f)) return true; // mesinha de centro
     return false;       // sem colisão
 }
 
@@ -673,7 +674,7 @@ int main(int argc, char** argv) {
     fridgeTex = loadTexture("images/geladeira.png");
     floorTex  = loadTexture("images/piso.png");
     woodTex   = loadTexture("images/madeira.png");
-    profTex   = loadTexture("images/professor (1).png");
+    profTex   = loadTexture("images/quadro.png");
 
     // faz o piso repetir
     glBindTexture(GL_TEXTURE_2D, floorTex);
